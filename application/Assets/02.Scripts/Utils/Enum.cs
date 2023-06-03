@@ -1,11 +1,19 @@
 public enum SceneType
 {
-    None,
-    IpSelect,
-    SplashScene,
-    TitleScene,
+    Splash,
+    Lobby,
     Loading,
-    LobbyV2,
-    IngameV2,
-    Tutorial_IngameV2,
+    // 후에 변경.
+    GameScene1,
+    GameScene2,
+    GameScene3,
+    GameScene4,
+}
+
+public enum GameType
+{
+    Mode1,
+    Mode2,
+    Mode3,
+    Mode4,
 }

@@ -30,6 +30,9 @@ public class SceneControllManager : Singleton<SceneControllManager>
         canvasGroupLoading.gameObject.SetActive(false);
 
         SceneManager.sceneLoaded += OnLoadSceneFinish;
+
+        // 임시 Scene 이동.
+        LoadScene(SceneType.Lobby, true);
     }
 
     protected override void OnDestroy()
@@ -77,7 +80,7 @@ public class SceneControllManager : Singleton<SceneControllManager>
     /// </summary>
     public void LoadScene(SceneType loadScene, bool isAsync)
     {
-        Debug.Log($"Try Load Scene {nameof(loadScene)} [{(isAsync ? "Async" : "Sync")}]");
+        Debug.Log($"Try Load Scene  To {loadScene.ToString()} [{(isAsync ? "Async" : "Sync")}]");
         
         if (isAsync)
         {
@@ -125,27 +128,6 @@ public class SceneControllManager : Singleton<SceneControllManager>
     public void ResetWaitFlag()
     {
         IsWait = false;
-    }
-
-    private IEnumerator AsyncLoadCalculateScene()
-    {
-        yield return GameManager.Instance.Get_WaitForSeconds(0.5f);
-        var operate = SceneManager.LoadSceneAsync(SceneType.TitleScene.ToString());
-
-        operate.allowSceneActivation = false;
-
-        while (!operate.isDone)
-        {
-            if (operate.progress >= 0.9f)
-            {
-                break;
-            }
-
-            yield return null;
-        }
-
-
-        operate.allowSceneActivation = true;
     }
     #endregion Main Methods
 }

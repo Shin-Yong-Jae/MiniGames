@@ -7,6 +7,8 @@ public class GameManager : Singleton<GameManager>
     // WaitForSeconds 
     private readonly Dictionary<float, WaitForSeconds> dicWaitForSeconds = new Dictionary<float, WaitForSeconds>();
 
+    protected override bool DontDestroyOnload => true;
+
     protected override void OnAwake()
     {
         // Static 변수 초기화 시점.
