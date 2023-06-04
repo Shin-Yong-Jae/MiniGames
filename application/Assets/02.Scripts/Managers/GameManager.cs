@@ -9,6 +9,7 @@ public class GameManager : Singleton<GameManager>
 
     protected override bool DontDestroyOnload => true;
 
+
     protected override void OnAwake()
     {
         // Static 변수 초기화 시점.
@@ -21,5 +22,4 @@ public class GameManager : Singleton<GameManager>
             dicWaitForSeconds.Add(second, new WaitForSeconds(second));
         return dicWaitForSeconds[second];
     }
-
 }
