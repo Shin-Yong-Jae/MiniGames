@@ -61,11 +61,11 @@ public class BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
         {
             if(movingValueX > 0)
             {
-                return ScrollDirection.MoveRightX;
+                return ScrollDirection.MoveLeftX;
             }
             else
             {
-                return ScrollDirection.MoveLeftX;
+                return ScrollDirection.MoveRightX;
             }
         }
         // Moving Y
@@ -73,11 +73,11 @@ public class BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDr
         {
             if(movingValueY > 0)
             {
-                return ScrollDirection.MoveUpY;
+                return ScrollDirection.MoveDownY;
             }
             else
             {
-                return ScrollDirection.MoveDownY;
+                return ScrollDirection.MoveUpY;
             }
         }
     }
