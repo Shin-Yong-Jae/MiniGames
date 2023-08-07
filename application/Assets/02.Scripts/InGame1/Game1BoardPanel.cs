@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,12 +16,12 @@ public class Game1BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     #region Variables
     private Vector2 startPosition;
     private Vector2 endPosition;
-    private int score;
-    private Game1Card[,] cards;
+    [SerializeField] private Game1Card[,] cards;
 
     [SerializeField] private Game1Card prefabCard;
     [SerializeField] private RectTransform rectBoard;
-
+    [SerializeField] private Game1TopPanel topPanel;
+    
     private int gridSize = 4;
     #endregion Variables
 
@@ -30,10 +29,12 @@ public class Game1BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private void Start()
     {
         InitializeBoard();
-        GetRandomEmptyCard().ChangeNumber(2);
-        GetRandomEmptyCard().ChangeNumber(2);
+        AddRandomCard(2);
+        AddRandomCard(2);
     }
-
+    #endregion UnityMethod
+    
+    #region EventSystem
     public void OnBeginDrag(PointerEventData eventData)
     {
         startPosition = eventData.position;
@@ -48,7 +49,7 @@ public class Game1BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         endPosition = eventData.position;
         MoveCards(GetDragDirection(startPosition, endPosition));
     }
-    #endregion UnityMethod
+    #endregion
 
     #region MainMethod
     /// <summary> 게임 보드 초기화 </summary>
@@ -67,111 +68,120 @@ public class Game1BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     }
 
     /// <summary> 랜덤 카드 추가. </summary>
-    private Game1Card GetRandomEmptyCard()
+    private void AddRandomCard(int value)
     {
-        // 빈 칸 중 하나를 무작위로 선택하여 반환
-        List<Game1Card> emptyCells = new List<Game1Card>();
+        // 빈 칸 중 하나를 무작위로 선택하여 해당 타일에 숫자 추가
+        List<Vector2Int> emptyCells = new List<Vector2Int>();
 
         for (int x = 0; x < gridSize; x++)
         {
             for (int y = 0; y < gridSize; y++)
             {
-                if (cards[x, y].number == 0)
+                if (cards[x, y].cardNumber == 0)
                 {
-                    emptyCells.Add(cards[x, y]);
+                    emptyCells.Add(new Vector2Int(x, y));
                 }
             }
         }
 
         if (emptyCells.Count > 0)
         {
-            return emptyCells[Random.Range(0, emptyCells.Count)];
+            int randomIndex = Random.Range(0, emptyCells.Count);
+            Vector2Int randomCell = emptyCells[randomIndex];
+            cards[randomCell.x, randomCell.y].ChangeNumber(value);
         }
         else
         {
-            return null;
+            // Game Over.
+            topPanel.GameOver();
+            // isGameOver = true;
+            //     게임 오버 처리
+            //     게임 오버 화면 표시 등
         }
     }
 
-    private void MoveCards(ScrollDirection direction)
+    /// <summary> 카드 전체 이동 Method. </summary>
+    private void MoveCards(ScrollDirection direction) 
     {
-        Debug.Log($"이동 방향 = {direction}");
         if (direction == ScrollDirection.None)
             return;
 
+        bool hasMoved = false; // 이동 여부를 나타내는 변수
+        bool isMoved = false; // 한 번이라도 이동했는지 여부.
+     
         // 타일을 주어진 방향으로 이동시키고 병합 처리
-        bool hasMoved = false;
+        do
+        {
+            hasMoved = false; // 이동 여부 초기화
 
-        if (direction == ScrollDirection.MoveUpY)
-        {
-            // 위쪽으로 이동
-            for (int x = 0; x < gridSize; x++)
+            switch (direction) 
             {
-                for (int y = 0; y < gridSize; y++)
-                {
-                    if (cards[x, y].number != 0)
-                    {
-                        hasMoved = cards[x,y].Move(direction, x, y, cards);
-                    }
-                }
-            }
-        }
-        else if (direction == ScrollDirection.MoveDownY)
+                case ScrollDirection.MoveUpY:
+                     for (int y = 0; y < gridSize; y++) 
+                     {
+                         for (int x = 1; x < gridSize; x++) // 수정: x값 범위를 변경
+                         {
+                             if (cards[x, y].cardNumber != 0)
+                             { 
+                                 hasMoved |= cards[x, y].Move(direction, x, y, cards);
+                                 isMoved = (isMoved == false) ? hasMoved : true;
+                             }
+                         }
+                     }
+                     break;
+             case ScrollDirection.MoveDownY:
+                 for (int y = 0; y < gridSize; y++)
+                 {
+                     for (int x = gridSize - 2; x >= 0; x--) // 수정: x값 범위를 변경
+                     {
+                         if (cards[x, y].cardNumber != 0)
+                         {
+                             hasMoved |= cards[x, y].Move(direction, x, y, cards);
+                             isMoved = (isMoved == false) ? hasMoved : true;
+                         }
+                     }
+                 }
+                 break;
+             case ScrollDirection.MoveLeftX:
+                 for (int x = 0; x < gridSize; x++)
+                 {
+                     for (int y = 1; y < gridSize; y++) // 수정: y값 범위를 변경
+                     {
+                         if (cards[x, y].cardNumber != 0)
+                         {
+                             hasMoved |= cards[x, y].Move(direction, x, y, cards);
+                             isMoved = (isMoved == false) ? hasMoved : true;
+                         }
+                     }
+                 }
+                 break;
+             case ScrollDirection.MoveRightX:
+                 for (int x = 0; x < gridSize; x++)
+                 {
+                     for (int y = gridSize - 2; y >= 0; y--) // 수정: y값 범위를 변경
+                     {
+                         if (cards[x, y].cardNumber != 0)
+                         {
+                             hasMoved |= cards[x, y].Move(direction, x, y, cards);
+                             isMoved = (isMoved == false) ? hasMoved : true;
+                         }
+                     }
+                 }
+                 break;
+         }
+        } while (hasMoved);
+     
+        // 랜덤 카드 소환.
+        if (isMoved)
         {
-            // 아래쪽으로 이동
-            for (int x = gridSize - 1; x >= 0; x--)
-            {
-                for (int y = 0; y < gridSize; y++)
-                {
-                    if (cards[x, y].number != 0)
-                    {
-                        hasMoved = cards[x, y].Move(direction, x, y, cards);
-                    }
-                }
-            }
-        }
-        else if (direction == ScrollDirection.MoveLeftX)
-        {
-            // 왼쪽으로 이동
-            for (int y = 0; y < gridSize; y++)
-            {
-                for (int x = 0; x < gridSize; x++)
-                {
-                    if (cards[x, y].number != 0)
-                    {
-                        hasMoved = cards[x, y].Move(direction, x, y, cards);
-                    }
-                }
-            }
-        }
-        else if (direction == ScrollDirection.MoveRightX)
-        {
-            // 오른쪽으로 이동
-            for (int y = gridSize - 1; y >= 0; y--)
-            {
-                for (int x = 0; x < gridSize; x++)
-                {
-                    if (cards[x, y].number != 0)
-                    {
-                        hasMoved = cards[x, y].Move(direction, x, y, cards);
-                    }
-                }
-            }
+            AddRandomCard(Random.value < 0.9f ? 2 : 4); // 90% 확률로 2를 생성, 10% 확률로 4를 생성
         }
 
-        if (hasMoved)
+        // Merge 정보 리셋.
+        foreach (var card in cards)
         {
-            // 이동 후에 빈 칸이 있다면 랜덤한 타일 생성
-            GetRandomEmptyCard().ChangeNumber(2);
+            card.hasMerged = false;
         }
-
-        // 게임 오버 조건 체크
-        //if (IsGameOver())
-        //{
-        //isGameOver = true;
-        // 게임 오버 처리
-        // 게임 오버 화면 표시 등
-        //}
     }
 
     /// <summary> 드래그 이벤트 방향 결정. </summary>
@@ -179,7 +189,7 @@ public class Game1BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         float movingValueX = currentPosition.x - prePosition.x;
         float movingValueY = currentPosition.y - prePosition.y;
-
+        
         //절대값.
         float absX = Mathf.Abs(movingValueX);
         float absY = Mathf.Abs(movingValueY);
@@ -194,11 +204,11 @@ public class Game1BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             if (movingValueX > 0)
             {
-                return ScrollDirection.MoveLeftX;
+                return ScrollDirection.MoveRightX;
             }
             else
             {
-                return ScrollDirection.MoveRightX;
+                return ScrollDirection.MoveLeftX;
             }
         }
         // Moving Y
@@ -206,11 +216,11 @@ public class Game1BoardPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             if (movingValueY > 0)
             {
-                return ScrollDirection.MoveDownY;
+                return ScrollDirection.MoveUpY;
             }
             else
             {
-                return ScrollDirection.MoveUpY;
+                return ScrollDirection.MoveDownY;
             }
         }
     }
